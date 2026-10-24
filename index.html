@@ -154,7 +154,6 @@ button.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(
 .tile:hover{transform:translateY(-2px)}
 .tile .topen{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;flex:1;min-width:0}
 .tile .topen:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;border-radius:14px}
-.tile.noph .tname{padding-right:26px}
 .fvbtn{all:unset;box-sizing:border-box;position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--ink-2);background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.22)}
 .fvbtn svg{width:17px;height:17px}
 .fvbtn.on{color:var(--heart)}
@@ -317,6 +316,16 @@ details.fold>.in{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px
 .acts.two{grid-template-columns:1fr 1fr;margin-top:6px}
 .acts.two .sb2{display:block}
 .rtitle{font-size:clamp(28px,7.6vw,38px);line-height:1.06;overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto;margin:2px 0 0}
+
+.phold{background:linear-gradient(135deg,var(--surface-2),var(--accent-soft));color:var(--ink-2);display:grid!important;place-items:center;aspect-ratio:16/10;width:100%}
+.phold svg{width:26px;height:26px;opacity:.45}
+.phold.big{border-radius:14px;gap:6px;align-content:center;justify-items:center;font-size:13px}
+.phold.big svg{width:34px;height:34px}
+
+.cooktap{all:unset;box-sizing:border-box;cursor:pointer;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;flex:none}
+.cooktap:focus-visible{outline:3px solid var(--accent)}
+.cooktap.intile{position:absolute;right:3px;bottom:3px}
+.cook-sp{width:22px;height:22px;flex:none}
 
 </style></head><body>
 <div class="wrap" id="app"></div>
@@ -1090,15 +1099,28 @@ async function toggleFav(id) {
   if (ok) { render(); window.scrollTo(0, y); }
   return ok;
 }
+async function toggleCooked(id) {
+  const r = S.recipes[id]; if (!r) return false;
+  const nr = Object.assign({}, r, { cooked: !r.cooked }), y = window.scrollY;
+  const ok = await persist([{ s: 'recipes', put: nr }], () => { S.recipes[id] = nr; }, 'Ändringen kunde inte sparas.');
+  if (ok) { render(); window.scrollTo(0, y); }
+  return ok;
+}
+/* Klickbar lagad-markering (används i rutor och i kokbokslistan) */
+const cookBtnEl = (r, cls) => h('button', { type: 'button', class: 'cooktap ' + (cls || ''), 'aria-pressed': String(!!r.cooked),
+  'aria-label': r.cooked ? 'Markera ' + r.name + ' som inte lagad' : 'Markera ' + r.name + ' som lagad',
+  title: r.cooked ? 'Lagad – tryck för att ångra' : 'Inte lagad – tryck för att markera som lagad',
+  onclick: e => { e.stopPropagation(); toggleCooked(r.id); } }, cookEl(r));
 function recipeTile(r) {
   const ph = r.photoId && S.photos[r.photoId];
   const label = r.name + (r.rating != null ? ', betyg ' + r.rating + ' av 5' : ', utan betyg') + (r.cooked ? ', lagad' : ', inte lagad') + (r.fav ? ', favorit' : '');
-  return h('div', { class: 'tile' + (ph ? '' : ' noph'), style: '--h:' + hueOf(r.bookId) },
+  return h('div', { class: 'tile', style: '--h:' + hueOf(r.bookId) },
     h('button', { type: 'button', class: 'topen', 'aria-label': label, onclick: () => openRecipe(r.id) },
-      ph ? photoImg(ph, { class: 'ph', alt: '', loading: 'lazy' }) : null,
-      h('span', { class: 'tb' }, h('span', { class: 'tname' }, r.name), h('span', { class: 'tfoot' }, ratingEl(r), cookEl(r)))),
+      ph ? photoImg(ph, { class: 'ph', alt: '', loading: 'lazy' }) : h('span', { class: 'ph phold', 'aria-hidden': 'true' }, icon('utensils')),
+      h('span', { class: 'tb' }, h('span', { class: 'tname' }, r.name), h('span', { class: 'tfoot' }, ratingEl(r), h('span', { class: 'cook-sp', 'aria-hidden': 'true' })))),
     h('button', { type: 'button', class: 'fvbtn' + (r.fav ? ' on' : ''), 'aria-pressed': String(!!r.fav), 'aria-label': r.fav ? 'Ta bort ' + r.name + ' som favorit' : 'Favoritmarkera ' + r.name,
-      onclick: () => toggleFav(r.id) }, icon('heart')));
+      onclick: () => toggleFav(r.id) }, icon('heart')),
+    cookBtnEl(r, 'intile'));
 }
 /* Rad i en kokboks egen lista: sidnummer syns här eftersom man bläddrar i boken */
 function bookRow(r) {
@@ -1106,7 +1128,7 @@ function bookRow(r) {
     h('button', { type: 'button', class: 'open', onclick: () => openRecipe(r.id), 'aria-label': 'Öppna ' + r.name },
       r.url ? h('span', { class: 'pg' }, icon('link')) : h('span', { class: 'pg' }, String(r.page)),
       h('span', { class: 'rname' }, r.name)),
-    h('div', { class: 'side' }, r.fav ? h('span', { class: 'fav-ic', 'aria-label': 'Favorit' }, icon('heart')) : null, ratingEl(r), cookEl(r)));
+    h('div', { class: 'side' }, r.fav ? h('span', { class: 'fav-ic', 'aria-label': 'Favorit' }, icon('heart')) : null, ratingEl(r), cookBtnEl(r)));
 }
 
 const toggleIn = (arr, v) => arr.includes(v) ? arr.filter(x => x !== v) : arr.concat([v]);
@@ -1327,7 +1349,7 @@ function openRecipe(id) {
       fileButton('Ta foto', 'camera', { capture: 'environment' }, pickPhoto),
       fileButton(p ? 'Byt foto' : 'Välj foto', 'image', {}, pickPhoto),
       p ? h('button', { type: 'button', class: 'btn danger', onclick: async () => { if (await removeRecipePhoto(id)) { toast('Fotot togs bort.'); paintPhoto(); } } }, icon('trash'), 'Ta bort foto') : null));
-    if (!p) photoHost.prepend(h('div', { class: 'muted' }, 'Lägg till ett eget foto av maträtten. Det sparas direkt.'));
+    if (!p) photoHost.prepend(h('div', { class: 'phold big', role: 'img', 'aria-label': 'Ingen bild än' }, icon('utensils'), h('span', null, 'Ingen bild än')));
   }
 
   const del = h('button', { type: 'button', class: 'btn danger', onclick: async () => {
@@ -1339,12 +1361,12 @@ function openRecipe(id) {
   const body = h('div', { class: 'stack' },
     titleBig,
     whereHost,
+    secEl('Namn', fieldEl('Receptnamn', 'd-name', nameInp, nameErr)),
+    locSec,
     secEl('Lagad, favorit och betyg', cookBtn, favBtn, h('div', { class: 'rate', role: 'group', 'aria-label': 'Betyg' }, starBtns, rateLab), noRate),
     secEl('Taggar', tagHost, h('div', { class: 'row' }, newTag, h('button', { type: 'button', class: 'btn', onclick: addTagNow }, icon('plus'), 'Lägg till'))),
     secEl('Kommentar', comm, delComm),
     secEl('Foto', photoHost),
-    secEl('Namn', fieldEl('Receptnamn', 'd-name', nameInp, nameErr)),
-    locSec,
     h('div', null, del));
   paintWhere(); paintStatus(); paintTags(); paintComm(); paintPhoto();
   sh = openSheet({ title: 'Recept', body, onClose: () => { commits.forEach(f => f()); return true; } });
@@ -1581,18 +1603,7 @@ function buildBookDetail(main) {
     if (editing) {
       const n = h('input', { class: 'inp', id: 'eb-name', value: bk.name }), a = h('input', { class: 'inp', id: 'eb-author', value: bk.author || '' });
       const err = h('div', { class: 'err', role: 'alert' });
-      const cur = () => S.books[id];
-      const covBox = h('div', { class: 'row', style: 'align-items:center' });
-      const paintCov = () => {
-        clear(covBox);
-        const c = cur().coverId && S.photos[cur().coverId];
-        const pick = async files => { try { const blob = await processImage(files[0], 900, 0.8); if (await setBookCover(id, blob)) { toast('Bilden sparades.'); paintCov(); } } catch (e) { fail('Bilden kunde inte läggas till.', e); } };
-        covBox.append(h('div', { class: 'cov' }, c ? photoImg(c, { alt: 'Omslag' }) : icon('book')),
-          fileButton('Ta foto', 'camera', { capture: 'environment' }, pick), fileButton(c ? 'Byt bild' : 'Välj bild', 'image', {}, pick),
-          c ? h('button', { type: 'button', class: 'btn danger', onclick: async () => { if (await removeBookCover(id)) { toast('Bilden togs bort.'); paintCov(); } } }, icon('trash'), 'Ta bort bild') : null);
-      };
-      paintCov();
-      head.appendChild(h('div', { class: 'sec', style: 'margin:10px 0' }, fieldEl('Kokbokens namn', 'eb-name', n, err), fieldEl('Författare', 'eb-author', a), fieldEl('Bild på kokboken (visas som miniatyr)', null, covBox),
+      head.appendChild(h('div', { class: 'sec', style: 'margin:10px 0' }, fieldEl('Kokbokens namn', 'eb-name', n, err), fieldEl('Författare', 'eb-author', a),
         h('div', { class: 'row' },
           h('button', { type: 'button', class: 'btn pri', onclick: async () => {
             const v = n.value.trim();
@@ -1603,6 +1614,7 @@ function buildBookDetail(main) {
           h('button', { type: 'button', class: 'btn', onclick: () => paintHead(false) }, 'Avbryt'))));
       return;
     }
+    const pickCover = async files => { try { const blob = await processImage(files[0], 900, 0.8); if (await setBookCover(id, blob)) { toast('Bilden sparades.'); paintHead(false); } } catch (e) { fail('Bilden kunde inte läggas till.', e); } };
     const st = bookStats(id);
     head.appendChild(h('div', { class: 'bhead', style: '--h:' + hueOf(id) },
       h('div', { class: 'top' },
@@ -1610,6 +1622,9 @@ function buildBookDetail(main) {
         h('div', { style: 'min-width:0' }, h('h2', null, bk.name),
         web ? h('div', { class: 'muted' }, 'Recept från webben') : (bk.author ? h('div', { class: 'muted' }, bk.author) : null),
         h('div', { class: 'muted small', style: 'margin-top:4px' }, plural(st.n, 'recept', 'recept') + (st.n ? ', ' : ''), st.n ? h('span', { class: 'pct' }, pctText(st)) : null))),
+      web ? null : h('div', { class: 'row' },
+        fileButton('Ta foto', 'camera', { capture: 'environment' }, pickCover, 'sm'), fileButton(bk.coverId ? 'Byt bild' : 'Välj bild', 'image', {}, pickCover, 'sm'),
+        bk.coverId ? h('button', { type: 'button', class: 'btn sm danger', onclick: async () => { if (await removeBookCover(id)) { toast('Bilden togs bort.'); paintHead(false); } } }, icon('trash'), 'Ta bort bild') : null),
       web ? h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn pri', onclick: () => openAddWeb() }, icon('plus'), 'Lägg till webbrecept'))
           : h('div', { class: 'acts two' },
               actTile('', 'rows', 'Lägg in flera recept', 'Skriv eller klistra in en lista.', () => openImport(id)),
