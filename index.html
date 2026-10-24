@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="sv"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>Receptsamlingen</title>
 <meta name="theme-color" content="#173A2A">
 <meta name="description" content="Samla och hitta recept ur egna kokböcker och från webben.">
@@ -326,6 +326,15 @@ details.fold>.in{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px
 .cooktap:focus-visible{outline:3px solid var(--accent)}
 .cooktap.intile{position:absolute;right:3px;bottom:3px}
 .cook-sp{width:22px;height:22px;flex:none}
+
+.tbook{display:block;font-size:11px;line-height:1.2;color:var(--ink-2);opacity:.8;margin-top:-4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ratetap{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;min-height:34px;padding:0 6px;border-radius:10px}
+.ratetap:focus-visible,.favtap:focus-visible{outline:3px solid var(--accent)}
+.ratetap.intile{position:absolute;left:3px;bottom:3px;width:70px;height:34px}
+.favtap{all:unset;box-sizing:border-box;cursor:pointer;display:grid;place-items:center;width:34px;height:34px;border-radius:50%;color:var(--ink-2);opacity:.55}
+.favtap svg{width:18px;height:18px}
+.favtap.on{color:var(--heart);opacity:1}.favtap.on svg{fill:currentColor}
+.ov{bottom:auto;top:var(--vvt,0px);height:var(--vvh,100%)}
 
 </style></head><body>
 <div class="wrap" id="app"></div>
@@ -771,6 +780,22 @@ function openSheet(o) {
   sheet.focus({ preventScroll: true });
   return api;
 }
+/* Tangentbordet på mobil: håll dialogen inom den synliga delen så att knapparna i botten syns,
+   och scrolla det fält man skriver i så att det inte hamnar under tangentbordet. */
+(function () {
+  const vv = window.visualViewport; if (!vv) return;
+  const de = document.documentElement.style;
+  const sync = () => {
+    const kb = window.innerHeight - vv.height - vv.offsetTop > 80;
+    if (kb) { de.setProperty('--vvh', vv.height + 'px'); de.setProperty('--vvt', vv.offsetTop + 'px'); }
+    else { de.removeProperty('--vvh'); de.removeProperty('--vvt'); }
+  };
+  vv.addEventListener('resize', sync); vv.addEventListener('scroll', sync);
+  document.addEventListener('focusin', e => {
+    const t = e.target; if (!t || !/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || !t.closest('.sheet')) return;
+    setTimeout(() => { try { t.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (x) { /* */ } }, 300);
+  });
+})();
 document.addEventListener('keydown', e => {
   const top = sheets[sheets.length - 1];
   if (!top) return;
@@ -1107,19 +1132,44 @@ async function toggleCooked(id) {
   return ok;
 }
 /* Klickbar lagad-markering (används i rutor och i kokbokslistan) */
+const bookLine = r => { const b = S.books[r.bookId]; return b ? h('span', { class: 'tbook' }, b.name) : null; };
 const cookBtnEl = (r, cls) => h('button', { type: 'button', class: 'cooktap ' + (cls || ''), 'aria-pressed': String(!!r.cooked),
   'aria-label': r.cooked ? 'Markera ' + r.name + ' som inte lagad' : 'Markera ' + r.name + ' som lagad',
   title: r.cooked ? 'Lagad – tryck för att ångra' : 'Inte lagad – tryck för att markera som lagad',
   onclick: e => { e.stopPropagation(); toggleCooked(r.id); } }, cookEl(r));
+async function setRating(id, n) {
+  const r = S.recipes[id]; if (!r) return false;
+  const nr = Object.assign({}, r, { rating: n }), y = window.scrollY;
+  const ok = await persist([{ s: 'recipes', put: nr }], () => { S.recipes[id] = nr; }, 'Ändringen kunde inte sparas.');
+  if (ok) { render(); window.scrollTo(0, y); }
+  return ok;
+}
+/* Betygsdialog: ett tryck på en stjärna sparar direkt och stänger */
+function openRatingDialog(id) {
+  const r0 = S.recipes[id]; if (!r0) return;
+  let sh;
+  const pick = async n => { if (await setRating(id, n)) sh.close(true); };
+  const stars = h('div', { class: 'rate', role: 'group', 'aria-label': 'Betyg', style: 'justify-content:center' },
+    [1, 2, 3, 4, 5].map(n => h('button', { type: 'button', class: 's' + (r0.rating != null && n <= r0.rating ? ' on' : ''), 'aria-label': STAR_LABEL(n), title: STAR_LABEL(n),
+      onclick: () => pick(n) }, icon('star'))));
+  const footer = h('div', { class: 'sf' }, h('button', { type: 'button', class: 'btn grow', onclick: () => sh.close() }, 'Stäng'),
+    r0.rating != null ? h('button', { type: 'button', class: 'btn grow', onclick: () => pick(null) }, 'Ta bort betyg') : null);
+  sh = openSheet({ title: 'Betygsätt', body: h('div', { class: 'stack' }, h('p', { class: 'rtitle', style: 'font-size:20px;margin:0;text-align:center' }, r0.name), stars,
+    h('p', { class: 'muted small', style: 'text-align:center;margin:0' }, r0.rating == null ? 'Inget betyg än' : 'Nuvarande betyg: ' + r0.rating + ' av 5')), footer, sticky: false });
+  sh.el.style.maxWidth = '420px';
+}
+const rateBtnEl = (r, cls) => h('button', { type: 'button', class: 'ratetap ' + (cls || ''), 'aria-label': (r.rating != null ? 'Ändra betyg för ' : 'Sätt betyg för ') + r.name,
+  onclick: e => { e.stopPropagation(); openRatingDialog(r.id); } }, cls ? null : ratingEl(r));
 function recipeTile(r) {
   const ph = r.photoId && S.photos[r.photoId];
   const label = r.name + (r.rating != null ? ', betyg ' + r.rating + ' av 5' : ', utan betyg') + (r.cooked ? ', lagad' : ', inte lagad') + (r.fav ? ', favorit' : '');
   return h('div', { class: 'tile', style: '--h:' + hueOf(r.bookId) },
     h('button', { type: 'button', class: 'topen', 'aria-label': label, onclick: () => openRecipe(r.id) },
       ph ? photoImg(ph, { class: 'ph', alt: '', loading: 'lazy' }) : h('span', { class: 'ph phold', 'aria-hidden': 'true' }, icon('utensils')),
-      h('span', { class: 'tb' }, h('span', { class: 'tname' }, r.name), h('span', { class: 'tfoot' }, ratingEl(r), h('span', { class: 'cook-sp', 'aria-hidden': 'true' })))),
+      h('span', { class: 'tb' }, h('span', { class: 'tname' }, r.name), bookLine(r), h('span', { class: 'tfoot' }, ratingEl(r), h('span', { class: 'cook-sp', 'aria-hidden': 'true' })))),
     h('button', { type: 'button', class: 'fvbtn' + (r.fav ? ' on' : ''), 'aria-pressed': String(!!r.fav), 'aria-label': r.fav ? 'Ta bort ' + r.name + ' som favorit' : 'Favoritmarkera ' + r.name,
       onclick: () => toggleFav(r.id) }, icon('heart')),
+    rateBtnEl(r, 'intile'),
     cookBtnEl(r, 'intile'));
 }
 /* Rad i en kokboks egen lista: sidnummer syns här eftersom man bläddrar i boken */
@@ -1128,7 +1178,10 @@ function bookRow(r) {
     h('button', { type: 'button', class: 'open', onclick: () => openRecipe(r.id), 'aria-label': 'Öppna ' + r.name },
       r.url ? h('span', { class: 'pg' }, icon('link')) : h('span', { class: 'pg' }, String(r.page)),
       h('span', { class: 'rname' }, r.name)),
-    h('div', { class: 'side' }, r.fav ? h('span', { class: 'fav-ic', 'aria-label': 'Favorit' }, icon('heart')) : null, ratingEl(r), cookBtnEl(r)));
+    h('div', { class: 'side' },
+      h('button', { type: 'button', class: 'favtap' + (r.fav ? ' on' : ''), 'aria-pressed': String(!!r.fav), 'aria-label': r.fav ? 'Ta bort ' + r.name + ' som favorit' : 'Favoritmarkera ' + r.name,
+        onclick: e => { e.stopPropagation(); toggleFav(r.id); } }, icon('heart')),
+      rateBtnEl(r), cookBtnEl(r)));
 }
 
 const toggleIn = (arr, v) => arr.includes(v) ? arr.filter(x => x !== v) : arr.concat([v]);
