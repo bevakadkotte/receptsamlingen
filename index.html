@@ -149,22 +149,28 @@ button.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(106px,1fr));gap:9px}
 @media (min-width:480px){.tiles{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}}
 @media (min-width:760px){.tiles{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}}
-.tile{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;min-width:0;min-height:96px;border-radius:14px;overflow:hidden;
-  background:hsl(var(--h) var(--bk-tint-s) var(--bk-tint-l));border:1px solid hsl(var(--h) var(--bk-line-s) var(--bk-line-l));position:relative;transition:transform .12s}
+.tile{box-sizing:border-box;display:flex;min-width:0;min-height:96px;border-radius:14px;overflow:hidden;position:relative;
+  background:hsl(var(--h) var(--bk-tint-s) var(--bk-tint-l));border:1px solid hsl(var(--h) var(--bk-line-s) var(--bk-line-l));transition:transform .12s}
 .tile:hover{transform:translateY(-2px)}
-.tile:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.tile::before{content:"";height:5px;flex:none;background:hsl(var(--h) var(--bk-band-s) var(--bk-band-l))}
+.tile .topen{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;flex:1;min-width:0}
+.tile .topen:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;border-radius:14px}
+.tile.noph .tname{padding-right:26px}
+.fvbtn{all:unset;box-sizing:border-box;position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--ink-2);background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.22)}
+.fvbtn svg{width:17px;height:17px}
+.fvbtn.on{color:var(--heart)}
+.fvbtn.on svg{fill:currentColor}
+.fvbtn:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
 .tile .ph{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:var(--surface-2)}
 .tile .tb{display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:8px 9px 9px;flex:1;min-width:0}
 .tname{font-family:var(--f-display);font-weight:650;font-size:13.5px;line-height:1.15;overflow-wrap:break-word;hyphens:auto;-webkit-hyphens:auto;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;color:var(--ink)}
 .tfoot{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:22px}
 .rt{display:inline-flex;align-items:center;gap:2px;font-weight:700;font-size:13px;color:var(--star);font-variant-numeric:tabular-nums}
 .rt svg{width:15px;height:15px}
-.rt.none{color:var(--ink-2);font-weight:500;opacity:.55}
+.rt.none{color:var(--ink-2);font-weight:500;opacity:.6}
 .cook{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none}
 .cook svg{width:14px;height:14px}
 .cook.on{background:var(--good);color:#fff}
-.cook.off{border:2px dashed var(--ink-2);opacity:.45}
+.cook.off{border:2px solid var(--ink-2);color:var(--ink-2);opacity:.5}
 .empty{padding:36px 16px;text-align:center;border:2px dashed var(--line);border-radius:18px;color:var(--ink-2);display:flex;flex-direction:column;gap:12px;align-items:center}
 .empty strong{font-family:var(--f-display);font-size:20px;color:var(--ink)}
 
@@ -304,12 +310,13 @@ details.fold>.in{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px
 .favq{flex:none}
 .favq[aria-pressed="true"]{border-color:var(--heart);color:var(--heart)}
 .favq[aria-pressed="true"] svg{fill:currentColor}
-.tile .fv{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:var(--surface);color:var(--heart);display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.25)}
-.tile .fv svg{width:14px;height:14px;fill:currentColor}
 .fav-ic{color:var(--heart);display:inline-flex}
 .fav-ic svg{width:16px;height:16px;fill:currentColor}
-.tile.hasfav .tname{padding-right:22px}
 .acts .act b{font-size:14px;hyphens:none;-webkit-hyphens:none;overflow-wrap:normal}
+
+.acts.two{grid-template-columns:1fr 1fr;margin-top:6px}
+.acts.two .sb2{display:block}
+.rtitle{font-size:clamp(28px,7.6vw,38px);line-height:1.06;overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto;margin:2px 0 0}
 
 </style></head><body>
 <div class="wrap" id="app"></div>
@@ -690,6 +697,7 @@ const ICONS = {
   dots: '<circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/>',
   shuffle: '<path d="M3 7h3.5c5 0 5 10 10 10H21M3 17h3.5c1.8 0 3-.9 4-2.2M13.5 9.2C14.5 7.9 15.7 7 17.5 7H21M18.5 4.5L21 7l-2.5 2.5M18.5 14.5L21 17l-2.5 2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
   share: '<path d="M12 15V3.5M8 7.5l4-4 4 4M6 11H5v9.5h14V11h-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  starO: '<path d="M12 3.6l2.5 5.3 5.8.7-4.3 4 1.1 5.8L12 16.5l-5.1 2.9L8 13.6l-4.3-4 5.8-.7z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>',
   heart: '<path d="M12 20.3S3.4 15.2 3.4 9.3C3.4 6.5 5.4 4.6 7.9 4.6c1.7 0 3 .9 4.1 2.5 1.1-1.6 2.4-2.5 4.1-2.5 2.5 0 4.5 1.9 4.5 4.7 0 5.9-8.6 11-8.6 11z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
   chev: '<path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'
 };
@@ -1068,19 +1076,29 @@ let R = null; // referenser till receptvyn
 
 const ratingEl = r => r.rating != null
   ? h('span', { class: 'rt' }, icon('star'), String(r.rating))
-  : h('span', { class: 'rt none', 'aria-hidden': 'true' }, '–');
-const cookEl = r => h('span', { class: 'cook ' + (r.cooked ? 'on' : 'off'), 'aria-hidden': 'true' }, r.cooked ? icon('check') : null);
+  : h('span', { class: 'rt none', 'aria-hidden': 'true' }, icon('starO'), '–');
+/* Lagad: grön cirkel med bock. Inte lagad: tom cirkel med svag bock, som en ikryssruta som inte är ikryssad. */
+const cookEl = r => h('span', { class: 'cook ' + (r.cooked ? 'on' : 'off'), 'aria-hidden': 'true', title: r.cooked ? 'Lagad' : 'Inte lagad' }, icon('check'));
 function tagEls(r) {
   const ts = (r.tagIds || []).map(id => S.tags[id]).filter(Boolean).sort((a, b) => sv.compare(a.name, b.name));
   return ts.length ? h('div', { class: 'meta', style: 'display:flex;gap:6px;flex-wrap:wrap' }, ts.map(t => h('span', { class: 'tagc' }, t.name))) : null;
 }
+async function toggleFav(id) {
+  const r = S.recipes[id]; if (!r) return false;
+  const nr = Object.assign({}, r, { fav: !r.fav }), y = window.scrollY;
+  const ok = await persist([{ s: 'recipes', put: nr }], () => { S.recipes[id] = nr; }, 'Ändringen kunde inte sparas.');
+  if (ok) { render(); window.scrollTo(0, y); }
+  return ok;
+}
 function recipeTile(r) {
   const ph = r.photoId && S.photos[r.photoId];
   const label = r.name + (r.rating != null ? ', betyg ' + r.rating + ' av 5' : ', utan betyg') + (r.cooked ? ', lagad' : ', inte lagad') + (r.fav ? ', favorit' : '');
-  return h('button', { type: 'button', class: 'tile' + (r.fav ? ' hasfav' : ''), style: '--h:' + hueOf(r.bookId), 'aria-label': label, onclick: () => openRecipe(r.id) },
-    ph ? photoImg(ph, { class: 'ph', alt: '', loading: 'lazy' }) : null,
-    r.fav ? h('span', { class: 'fv', 'aria-hidden': 'true' }, icon('heart')) : null,
-    h('span', { class: 'tb' }, h('span', { class: 'tname' }, r.name), h('span', { class: 'tfoot' }, ratingEl(r), cookEl(r))));
+  return h('div', { class: 'tile' + (ph ? '' : ' noph'), style: '--h:' + hueOf(r.bookId) },
+    h('button', { type: 'button', class: 'topen', 'aria-label': label, onclick: () => openRecipe(r.id) },
+      ph ? photoImg(ph, { class: 'ph', alt: '', loading: 'lazy' }) : null,
+      h('span', { class: 'tb' }, h('span', { class: 'tname' }, r.name), h('span', { class: 'tfoot' }, ratingEl(r), cookEl(r)))),
+    h('button', { type: 'button', class: 'fvbtn' + (r.fav ? ' on' : ''), 'aria-pressed': String(!!r.fav), 'aria-label': r.fav ? 'Ta bort ' + r.name + ' som favorit' : 'Favoritmarkera ' + r.name,
+      onclick: () => toggleFav(r.id) }, icon('heart')));
 }
 /* Rad i en kokboks egen lista: sidnummer syns här eftersom man bläddrar i boken */
 function bookRow(r) {
@@ -1185,16 +1203,16 @@ function openRecipe(id) {
   const whereHost = h('div');
   const upd = async patch => { const ok = await updateRecipe(id, patch); paintWhere(); return ok; };
   function paintWhere() {
-    const r = cur(), b = S.books[r.bookId];
+    const r = cur();
     clear(whereHost);
-    whereHost.className = 'where';
     if (r.bookId === WEB || r.url) {
-      whereHost.append(h('div', { class: 'pgbig' }, icon('link')), h('div', { class: 'grow' }, h('div', { class: 'wb' }, Core.siteOf(r.url || '') || 'Webbrecept'), h('div', { class: 'muted small' }, 'Webbrecept')),
+      whereHost.className = 'where';
+      whereHost.append(h('div', { class: 'grow' }, h('div', { class: 'wb' }, Core.siteOf(r.url || '') || 'Webbrecept'), h('div', { class: 'muted small' }, 'Webbrecept')),
         r.url ? h('a', { class: 'btn pri', href: r.url, target: '_blank', rel: 'noopener noreferrer' }, icon('link'), 'Öppna recept') : null);
-    } else {
-      whereHost.append(h('div', { class: 'pgbig' }, h('small', null, 'SIDA'), String(r.page)), h('div', { class: 'grow' }, h('div', { class: 'wb' }, b ? b.name : '(kokbok saknas)'), b && b.author ? h('div', { class: 'muted small' }, b.author) : null));
-    }
+    } else { whereHost.className = ''; whereHost.hidden = true; return; }
+    whereHost.hidden = false;
   }
+  const titleBig = h('h1', { class: 'rtitle' }, cur().name);
 
   /* Namn */
   const nameErr = h('div', { class: 'err', role: 'alert' });
@@ -1204,7 +1222,7 @@ function openRecipe(id) {
     if (v === cur().name) return;
     if (!v) { nameErr.textContent = 'Receptet måste ha ett namn.'; nameInp.classList.add('bad'); nameInp.value = cur().name; return; }
     nameErr.textContent = ''; nameInp.classList.remove('bad');
-    if (await upd({ name: v })) { if (sh) sh.titleEl.textContent = v; toast('Namnet sparades.'); } else nameInp.value = cur().name;
+    if (await upd({ name: v })) { titleBig.textContent = v; toast('Namnet sparades.'); } else nameInp.value = cur().name;
   };
   nameInp.addEventListener('change', commitName); commits.push(commitName);
 
@@ -1223,7 +1241,7 @@ function openRecipe(id) {
       if (await upd({ page: v })) toast('Sidnumret sparades.'); else pageInp.value = cur().page;
     };
     pageInp.addEventListener('change', commitPage); commits.push(commitPage);
-    locSec = secEl('Ändra plats', h('div', { class: 'row', style: 'align-items:flex-start' },
+    locSec = secEl('Kokbok och sida', h('div', { class: 'row', style: 'align-items:flex-start' },
       h('div', { class: 'grow' }, fieldEl('Kokbok', 'd-book', bookSel)),
       h('div', { style: 'width:110px' }, fieldEl('Sidnummer', 'd-page', pageInp, pageErr))));
   } else {
@@ -1306,7 +1324,7 @@ function openRecipe(id) {
     const p = cur().photoId && S.photos[cur().photoId];
     if (p) photoHost.append(photoImg(p, { alt: 'Eget foto av ' + cur().name }));
     photoHost.append(h('div', { class: 'row' },
-      fileButton('Ta foto', 'camera', { capture: 'environment' }, pickPhoto, p ? '' : 'pri'),
+      fileButton('Ta foto', 'camera', { capture: 'environment' }, pickPhoto),
       fileButton(p ? 'Byt foto' : 'Välj foto', 'image', {}, pickPhoto),
       p ? h('button', { type: 'button', class: 'btn danger', onclick: async () => { if (await removeRecipePhoto(id)) { toast('Fotot togs bort.'); paintPhoto(); } } }, icon('trash'), 'Ta bort foto') : null));
     if (!p) photoHost.prepend(h('div', { class: 'muted' }, 'Lägg till ett eget foto av maträtten. Det sparas direkt.'));
@@ -1319,16 +1337,17 @@ function openRecipe(id) {
   } }, icon('trash'), 'Ta bort recept');
 
   const body = h('div', { class: 'stack' },
+    titleBig,
     whereHost,
-    secEl(null, fieldEl('Receptnamn', 'd-name', nameInp, nameErr)),
-    locSec,
     secEl('Lagad, favorit och betyg', cookBtn, favBtn, h('div', { class: 'rate', role: 'group', 'aria-label': 'Betyg' }, starBtns, rateLab), noRate),
     secEl('Taggar', tagHost, h('div', { class: 'row' }, newTag, h('button', { type: 'button', class: 'btn', onclick: addTagNow }, icon('plus'), 'Lägg till'))),
     secEl('Kommentar', comm, delComm),
     secEl('Foto', photoHost),
+    secEl('Namn', fieldEl('Receptnamn', 'd-name', nameInp, nameErr)),
+    locSec,
     h('div', null, del));
   paintWhere(); paintStatus(); paintTags(); paintComm(); paintPhoto();
-  sh = openSheet({ title: cur().name, body, onClose: () => { commits.forEach(f => f()); return true; } });
+  sh = openSheet({ title: 'Recept', body, onClose: () => { commits.forEach(f => f()); return true; } });
 }
 
 /* ===== Lägg till bokrecept ===== */
@@ -1504,9 +1523,9 @@ function buildBooks(main) {
   BD = null;
   main.appendChild(h('div', { class: 'sect' }, h('h2', null, 'Lägg till')));
   main.appendChild(h('div', { class: 'acts' },
+    actTile('', 'plus', 'Ny kokbok', 'Lägg en bok på hyllan.', () => openAddBook()),
     actTile('', 'book', 'Recept ur kokbok', 'Namn och sidnummer.', () => openAddBookRecipe()),
-    actTile('', 'link', 'Webbrecept', 'Spara en länk.', () => openAddWeb()),
-    actTile('', 'plus', 'Ny kokbok', 'Lägg en bok på hyllan.', () => openAddBook())));
+    actTile('', 'link', 'Webbrecept', 'Spara en länk.', () => openAddWeb())));
   main.appendChild(h('div', { class: 'sect' }, h('h2', null, 'Mina kokböcker')));
   const bs = sortedBooks();
   main.appendChild(h('div', { class: 'bgrid' }, bs.map(b => {
@@ -1591,10 +1610,10 @@ function buildBookDetail(main) {
         h('div', { style: 'min-width:0' }, h('h2', null, bk.name),
         web ? h('div', { class: 'muted' }, 'Recept från webben') : (bk.author ? h('div', { class: 'muted' }, bk.author) : null),
         h('div', { class: 'muted small', style: 'margin-top:4px' }, plural(st.n, 'recept', 'recept') + (st.n ? ', ' : ''), st.n ? h('span', { class: 'pct' }, pctText(st)) : null))),
-      h('div', { class: 'row' },
-        web ? h('button', { type: 'button', class: 'btn pri', onclick: () => openAddWeb() }, icon('plus'), 'Lägg till webbrecept')
-            : [h('button', { type: 'button', class: 'btn pri', onclick: () => openImport(id) }, icon('rows'), 'Lägg in flera recept'),
-               h('button', { type: 'button', class: 'btn', onclick: () => openAddBookRecipe(id) }, icon('plus'), 'Lägg till recept')]),
+      web ? h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn pri', onclick: () => openAddWeb() }, icon('plus'), 'Lägg till webbrecept'))
+          : h('div', { class: 'acts two' },
+              actTile('', 'rows', 'Lägg in flera recept', 'Skriv eller klistra in en lista.', () => openImport(id)),
+              actTile('', 'plus', 'Lägg till ett recept', 'Fyll i namn och sida.', () => openAddBookRecipe(id))),
       web ? null : h('div', { class: 'row' },
         h('button', { type: 'button', class: 'btn sm', onclick: () => paintHead(true) }, icon('pen'), 'Ändra bok'),
         h('button', { type: 'button', class: 'btn sm danger', onclick: () => deleteBookFlow(id) }, icon('trash'), 'Ta bort bok'))));
@@ -1711,7 +1730,7 @@ function openImport(bookId) {
       STANDALONE ? null : h('div', { class: 'stack', style: 'gap:8px' },
         h('strong', null, 'Foto av innehållsförteckningen'),
         h('span', { class: 'muted small' }, 'Ta ett foto eller välj bilder ur galleriet. Claude föreslår recept och sidnummer, och du kontrollerar innan något sparas.'),
-        h('div', { class: 'row' }, fileButton('Ta foto', 'camera', { capture: 'environment' }, readImages, 'pri'), fileButton('Välj bilder', 'image', { multiple: true }, readImages))),
+        h('div', { class: 'row' }, fileButton('Ta foto', 'camera', { capture: 'environment' }, readImages), fileButton('Välj bilder', 'image', { multiple: true }, readImages))),
       STANDALONE ? null : h('hr', { style: 'border:0;border-top:1px solid var(--line);width:100%;margin:2px 0' }),
       h('p', { style: 'margin:0' }, (STANDALONE ? 'Skriv eller klistra in' : 'Eller skriv eller klistra in') + ' recepten med sidnummer, ett recept per rad. Appen föreslår namn och sida, och du kontrollerar innan något sparas i ', h('b', null, book.name), '.'),
       h('div', { class: 'field' }, h('label', { for: 'imp-text' }, 'Recept och sidor'), ta,
@@ -2136,6 +2155,36 @@ function installHomeIcon() {
   } catch (e) { /* ikonen är en bekvämlighet */ }
 }
 
+/* Bakåtknappen: stänger först öppna rutor, går upp en nivå i appen, och frågar sist om appen ska stängas.
+   Gäller bara den fristående appen. Posten som fångar bakåt läggs in först vid första tryck,
+   eftersom Chrome hoppar över historikposter som skapats utan att man rört sidan. */
+function initBackGuard() {
+  if (!STANDALONE || !window.history || !history.pushState) return;
+  let armed = false, leaving = false;
+  const push = () => { try { history.pushState({ rs: 'guard' }, ''); } catch (e) { /* */ } };
+  const arm = () => { if (armed) return; armed = true; try { history.replaceState({ rs: 'base' }, ''); } catch (e) { /* */ } push(); };
+  document.addEventListener('click', arm, { capture: true, once: true });
+  document.addEventListener('keydown', arm, { capture: true, once: true });
+  window.addEventListener('popstate', () => {
+    if (!armed || leaving) return;
+    push(); // nästa bakåttryck ska också fångas
+    const top = sheets[sheets.length - 1];
+    if (top) { top.close(); return; }
+    if (S.view === 'books' && S.bookId) { S.bookId = null; render(); window.scrollTo(0, 0); return; }
+    if (S.view === 'books') { go('recipes'); return; }
+    confirmDialog({ title: 'Stänga appen?', body: h('p', null, 'Vill du stänga Receptsamlingen eller stanna kvar?'), confirmLabel: 'Stäng appen', cancelLabel: 'Stanna kvar' }).then(ok => {
+      if (!ok) return;
+      leaving = true;
+      history.go(-2);
+      setTimeout(() => { // kvar här betyder att det inte fanns något att gå tillbaka till
+        try { history.go(-1); } catch (e) { /* */ }
+        try { window.close(); } catch (e) { /* */ }
+        toast('Tryck på bakåt en gång till för att stänga appen.');
+      }, 450);
+    });
+  });
+}
+
 async function start() {
   const app = $('#app');
   app.innerHTML = ''; app.lang = 'sv';
@@ -2156,6 +2205,7 @@ async function start() {
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) { /* valfritt */ }
   render();
   paintBackupDot();
+  initBackGuard();
   if (STANDALONE && !window.__NOSW__ && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
   Cloud.sync().then(r => {
     if (r.did === 'pull') { S.f = Core.emptyFilters(); S.bookId = null; render(); toast('Hämtade ' + plural(r.n, 'recept', 'recept') + ' från ditt konto.'); }
