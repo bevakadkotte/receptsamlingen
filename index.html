@@ -146,9 +146,9 @@ button.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(
 .fgroup .seg{align-self:flex-start;flex-wrap:wrap}
 
 /* Receptrutor: litet och överskådligt. Namn, betyg och lagad. */
-.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(106px,1fr));gap:9px}
-@media (min-width:480px){.tiles{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}}
-@media (min-width:760px){.tiles{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+@media (min-width:480px){.tiles{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}}
+@media (min-width:760px){.tiles{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}}
 .tile{box-sizing:border-box;display:flex;min-width:0;min-height:96px;border-radius:14px;overflow:hidden;position:relative;
   background:hsl(var(--h) var(--bk-tint-s) var(--bk-tint-l));border:1px solid hsl(var(--h) var(--bk-line-s) var(--bk-line-l));transition:transform .12s}
 .tile:hover{transform:translateY(-2px)}
@@ -160,9 +160,9 @@ button.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(
 .fvbtn.on svg{fill:currentColor}
 .fvbtn:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
 .tile .ph{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:var(--surface-2)}
-.tile .tb{display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:8px 9px 9px;flex:1;min-width:0}
-.tname{font-family:var(--f-display);font-weight:650;font-size:13.5px;line-height:1.15;overflow-wrap:break-word;hyphens:auto;-webkit-hyphens:auto;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;color:var(--ink)}
-.tfoot{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:22px}
+.tile .tb{display:flex;flex-direction:column;justify-content:flex-start;gap:6px;padding:10px 11px 12px;flex:1;min-width:0}
+.tname{font-family:var(--f-display);font-weight:650;font-size:15.5px;line-height:1.2;overflow-wrap:break-word;hyphens:auto;-webkit-hyphens:auto;color:var(--ink)}
+.tfoot{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:28px;margin-top:auto;padding-top:4px}
 .rt{display:inline-flex;align-items:center;gap:2px;font-weight:700;font-size:13px;color:var(--star);font-variant-numeric:tabular-nums}
 .rt svg{width:15px;height:15px}
 .rt.none{color:var(--ink-2);font-weight:500;opacity:.6}
@@ -327,7 +327,7 @@ details.fold>.in{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px
 .cooktap.intile{position:absolute;right:3px;bottom:3px}
 .cook-sp{width:22px;height:22px;flex:none}
 
-.tbook{display:block;font-size:11px;line-height:1.2;color:var(--ink-2);opacity:.8;margin-top:-4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tbook{display:block;font-size:13px;line-height:1.25;font-weight:500;color:var(--ink-2);overflow-wrap:break-word;hyphens:auto;-webkit-hyphens:auto}
 .ratetap{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;min-height:34px;padding:0 6px;border-radius:10px}
 .ratetap:focus-visible,.favtap:focus-visible{outline:3px solid var(--accent)}
 .ratetap.intile{position:absolute;left:3px;bottom:3px;width:70px;height:34px}
@@ -360,6 +360,14 @@ details.fold>.in{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px
 .sortbtn{width:48px;padding:0;justify-content:center;flex:none}
 .sortopt{justify-content:flex-start;min-height:48px;font-size:16px;width:100%;display:flex;gap:8px;align-items:center}
 .sortopt[aria-checked="true"]{background:var(--accent-soft);border-color:var(--accent);font-weight:700}
+
+.tile .ph,.tile .phold{aspect-ratio:2/1}
+.fhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fhead strong{font-family:var(--f-display);font-size:18px}
+.fshow{width:100%}
+#fbtn.pri{white-space:nowrap}
+
+.tiles{grid-auto-rows:1fr}
 
 </style></head><body>
 <div class="wrap" id="app"></div>
@@ -1229,20 +1237,23 @@ function openSortDialog() {
     footer: h('div', { class: 'sf' }, h('button', { type: 'button', class: 'btn grow', onclick: () => sh.close() }, 'Stäng')) });
   sh.el.style.maxWidth = '420px';
 }
+function closeFilter() { S.filterOpen = false; updateRecipes(); const t = document.querySelector('.tools'); if (t) t.scrollIntoView({ block: 'start' }); if (R && R.filterBtn) R.filterBtn.focus({ preventScroll: true }); }
 function buildFilterPanel() {
   const f = S.f;
   const g = (title, ...kids) => h('div', { class: 'fgroup' }, h('div', { class: 'lab' }, title), ...kids);
   const set = (k, v) => { S.f[k] = v; render(); };
   return h('div', { class: 'fpanel', id: 'fpanel' },
+    h('div', { class: 'fhead' }, h('strong', null, 'Filter')),
     g('Lagat', h('div', { class: 'chips' }, [['all', 'Alla'], ['notcooked', 'Inte lagat'], ['cooked', 'Lagat']].map(([v, l]) => chipBtn(l, f.cooked === v, () => set('cooked', v))))),
     g('Betyg', h('div', { class: 'chips' }, [5, 4, 3, 2, 1, 0].map(n => h('button', { type: 'button', class: 'chip starchip', 'aria-pressed': f.stars.includes(n) ? 'true' : 'false',
       'aria-label': STAR_LABEL(n), title: STAR_LABEL(n), onclick: () => set('stars', toggleIn(f.stars, n)) },
       n === 0 ? h('span', null, 'Utan betyg') : Array.from({ length: n }, () => icon('star')))))),
-    g('Taggar (flera går att välja)',
+    g('Taggar',
       h('div', { class: 'chips' }, sortedTags().map(t => chipBtn(t.name, f.tags.includes(t.id), () => set('tags', toggleIn(f.tags, t.id))))),
       f.tags.length >= 2 ? h('div', { class: 'seg', role: 'group', 'aria-label': 'Taggkrav' },
         [['all', 'Alla valda taggar'], ['any', 'Minst en vald tagg']].map(([v, l]) => h('button', { type: 'button', 'aria-pressed': f.tagMode === v ? 'true' : 'false', onclick: () => set('tagMode', v) }, l))) : null),
-    g('Kokbok', h('div', { class: 'chips' }, sortedBooks().map(b => chipBtn(b.name, f.books.includes(b.id), () => set('books', toggleIn(f.books, b.id)))))));
+    g('Kokbok', h('div', { class: 'chips' }, sortedBooks().map(b => chipBtn(b.name, f.books.includes(b.id), () => set('books', toggleIn(f.books, b.id)))))),
+    h('button', { type: 'button', class: 'btn pri big fshow', id: 'fshow', onclick: closeFilter }, icon('check'), currentList().length ? 'Visa ' + plural(currentList().length, 'recept', 'recept') : 'Stäng filter'));
 }
 function activeChips() {
   const f = S.f, out = [];
@@ -1279,7 +1290,8 @@ function buildRecipesView(main) {
 function updateRecipes() {
   if (!R) return;
   const n = activeFilterCount();
-  clear(R.filterBtn).append(icon('filter'), 'Filter' + (n ? ' (' + n + ')' : ''));
+  clear(R.filterBtn).append(icon(S.filterOpen ? 'x' : 'filter'), S.filterOpen ? 'Stäng filter' : 'Filter' + (n ? ' (' + n + ')' : ''));
+  R.filterBtn.classList.toggle('pri', !!S.filterOpen);
   R.filterBtn.setAttribute('aria-expanded', String(S.filterOpen));
   R.favBtn.setAttribute('aria-pressed', String(!!S.f.fav));
   clear(R.panelHost); if (S.filterOpen) R.panelHost.appendChild(buildFilterPanel());
@@ -2107,15 +2119,10 @@ async function openMore() {
   fileIn.addEventListener('change', () => { const f = fileIn.files[0]; fileIn.value = ''; if (f) restoreFromFile(f, paintInfo); });
   const body = h('div', { class: 'stack' },
     secEl('Taggar', h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', onclick: openTagManager }, icon('tag'), 'Hantera taggar'))),
-    h('details', { class: 'fold' }, h('summary', null, 'Säkerhetskopia'),
+    h('details', { class: 'fold', open: true }, h('summary', null, 'Säkerhetskopia'),
       h('div', { class: 'in' },
         Store.volatile ? h('div', { class: 'note bad', role: 'alert' }, icon('warn'), h('span', null, 'Sparandet fungerar inte i den här vyn. Det du lägger till finns kvar tills du stänger sidan. Exportera en säkerhetskopia om du vill behålla det.')) : null,
         h('div', null, counts, last, store),
-        STANDALONE ? null : h('div', { class: 'note' }, icon('save'), h('span', { id: 'cloud-txt' }, Cloud.text())),
-        STANDALONE ? null : h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', id: 'cloud-sync', onclick: async () => {
-          const t = $('#cloud-txt'); if (t) t.textContent = 'Synkar…';
-          await Cloud.chain; const r = await Cloud.sync(); if (r.did === 'pull') { render(); paintInfo(); }
-          if (t) t.textContent = Cloud.text(); } }, 'Synka nu')),
         h('p', { class: 'muted small', style: 'margin:0' }, (STANDALONE ? 'Samlingen ligger bara i den här telefonens webbläsare. Spara en säkerhetskopia regelbundet, och alltid innan du byter telefon eller rensar webbläsarens data.' : 'Samlingen ligger i den här webbläsaren, med en kopia i ditt Claude-konto. Använd en telefon åt gången.') + ' En fil med allt, inklusive foton, kan du spara som reserv eller använda för att flytta samlingen.'),
         h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn pri', onclick: () => exportBackup(statusEl) }, icon('save'), 'Exportera säkerhetskopia')), statusEl,
         h('hr', { style: 'border:0;border-top:1px solid var(--line);width:100%;margin:4px 0' }),
