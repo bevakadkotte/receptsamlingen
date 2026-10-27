@@ -462,6 +462,19 @@ html.selmode .totop{bottom:calc(190px + env(safe-area-inset-bottom,0px))}
   .tabs .tab{flex:1 1 0;min-width:0;flex-direction:column;gap:2px;padding:6px 4px;min-height:56px;font-size:12.5px;border-radius:16px}
   .tab.moretab{flex:1 1 0;padding-left:4px;padding-right:4px}
 }
+.li.rr .rname{font-size:14.5px;line-height:1.2;-webkit-line-clamp:3}
+.li.rr .tbook{font-size:12px}
+.li.rr .side{gap:8px}
+.li.rr .rthumb{width:52px;height:52px;border-radius:10px}
+.li.rr button.open{gap:10px}
+
+/* Nedre systemfältet: Android/Chrome hämtar sin färg från sidans nedersta pixlar. Därför är det
+   yttersta bandet alltid exakt sidans bakgrund (--bg), och den markerade flikens ruta ligger högre upp. */
+html{background:var(--bg)}
+.tabs{padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));background:var(--bg)}
+.tabs::after{content:"";position:absolute;left:0;right:0;bottom:0;height:calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);pointer-events:none}
+@media (max-width:759px){.totop{bottom:calc(92px + env(safe-area-inset-bottom,0px))}html.selmode .totop{bottom:calc(198px + env(safe-area-inset-bottom,0px))}}
+@media (min-width:760px){.tabs::after{display:none}}
 
 </style></head><body>
 <div class="wrap" id="app"></div>
