@@ -488,6 +488,8 @@ html{background:var(--bg)}
 #shelf-count{margin:-4px 2px var(--gap)!important}
 .tabs{padding-top:8px}
 .tools{margin:var(--gap) 0!important}
+.tabs{padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.tabs::after{height:calc(8px + env(safe-area-inset-bottom,0px))}
 
 </style></head><body>
 <div class="wrap" id="app"></div>
