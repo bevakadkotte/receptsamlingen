@@ -80,9 +80,7 @@ svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em}
 /* Flikar: nedre fält på telefon, i titelytan på större skärmar */
 .tabs{display:flex;gap:4px}
 .tab{border:0;background:none;padding:8px 14px;border-radius:999px;font-weight:700;color:var(--ink-2);display:flex;gap:8px;align-items:center;justify-content:center;min-height:44px;flex:1}
-.tab{position:relative}
-.tab[aria-selected="true"]{background:none;color:var(--accent)}
-.tab[aria-selected="true"]::before{content:"";position:absolute;top:-7px;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+.tab[aria-selected="true"]{background:var(--accent-soft);color:var(--accent)}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:55;padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
   background:var(--bg);border-top:1px solid var(--line);gap:8px}
 .tab svg.i{width:22px;height:22px}
@@ -91,7 +89,6 @@ svg.i{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em}
   .tabs{position:static;background:none;border:0;padding:0;margin-top:16px;display:inline-flex;gap:6px;background:rgba(255,255,255,.1);border-radius:999px;padding:4px}
   .tab{flex:none;color:var(--hero-ink-2);padding:8px 18px}
   .tab[aria-selected="true"]{background:var(--hero-ink);color:var(--hero)}
-  .tab[aria-selected="true"]::before{display:none}
 }
 
 /* Knappar och fält */
