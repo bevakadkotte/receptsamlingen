@@ -2573,13 +2573,19 @@ function paintHero() {
 }
 
 /* Ikon och namn när sidan läggs på telefonens hemskärm. Görs i efterhand eftersom sidans head styrs av värden. */
+/* Manifestet kan bara ha en färg. Den väljs när sidan startar, efter telefonens ljusa eller mörka tema, så att
+   den installerade appen (statusfält, nedre systemfält, startskärm) får samma färg som appens bakgrund. */
+function manifestBg() {
+  try { const v = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(); if (/^#[0-9a-f]{6}$/i.test(v)) return v.toUpperCase(); } catch (e) { /* använd ljus */ }
+  return '#F0F5EE';
+}
 /* Enfilsversionen: manifest och ikoner läggs in från sidan själv, så bara index.html behöver laddas upp. */
 function installInlineManifest() {
   const I = window.__ICONS__; if (!I) return;
   try {
     const add = (tag, attrs) => { const el = document.createElement(tag); for (const k in attrs) el.setAttribute(k, attrs[k]); document.head.appendChild(el); };
     const man = { name: 'Receptoteket', short_name: 'Receptoteket', lang: 'sv', id: location.pathname, start_url: location.href.split('#')[0], scope: location.href.split('#')[0].replace(/[^/]*$/, ''),
-      display: 'standalone', orientation: 'portrait', background_color: '#F0F5EE', theme_color: '#F0F5EE',
+      display: 'standalone', orientation: 'portrait', background_color: manifestBg(), theme_color: manifestBg(),
       icons: [{ src: I.i192, sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: I.i512, sizes: '512x512', type: 'image/png', purpose: 'any' }, { src: I.mask, sizes: '512x512', type: 'image/png', purpose: 'maskable' }] };
     add('link', { rel: 'manifest', href: 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(man)) });
   } catch (e) { /* valfritt */ }
@@ -2607,7 +2613,7 @@ function installHomeIcon() {
     add('meta', { name: 'mobile-web-app-capable', content: 'yes' });
     add('meta', { name: 'apple-mobile-web-app-title', content: 'Receptoteket' });
     add('meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'default' });
-    const man = { name: 'Receptoteket', short_name: 'Receptoteket', lang: 'sv', display: 'standalone', start_url: location.href, scope: location.origin + '/', background_color: '#F0F5EE', theme_color: '#F0F5EE',
+    const man = { name: 'Receptoteket', short_name: 'Receptoteket', lang: 'sv', display: 'standalone', start_url: location.href, scope: location.origin + '/', background_color: manifestBg(), theme_color: manifestBg(),
       icons: [{ src: png, sizes: '192x192', type: 'image/png', purpose: 'any' }] };
     add('link', { rel: 'manifest', href: 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(man)) });
   } catch (e) { /* ikonen är en bekvämlighet */ }
